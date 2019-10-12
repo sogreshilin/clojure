@@ -29,7 +29,7 @@
   "Сделать список списков плоским"
   [a_list]
   (
-    reduce (fn [acc sub_list] (concat acc sub_list)) (list) a_list
+    reduce concat (list) a_list
   )
 )
 
