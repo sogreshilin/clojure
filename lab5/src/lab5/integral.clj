@@ -33,8 +33,13 @@
 (defn integrate-from-origin
   "Проинтегрировать функцию f методом трапеций с постоянным шагом от 0 до x"
   [f h x] (
-    let [n (int (Math/floor (/ x h))) a (* n h) b x] (
-      + (trapezoid-area f a b) ((do-integrate f h) n)
+    let [
+      n (int (Math/floor (/ x h)))
+      a (* n h)
+      b x
+      integrate-n (do-integrate f h)
+    ] (
+      + (trapezoid-area f a b) (integrate-n n)
     )
   )
 )
