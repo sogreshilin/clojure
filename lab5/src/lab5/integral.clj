@@ -46,5 +46,11 @@
 
 (defn integrate
   "Проинтегрировать функцию f методом трапеций с постоянным шагом h от 0 до x"
-  [f h] (fn [x] (integrate-from-origin f h x))
+  [f h] (
+    let [foo (partial (partial integrate-from-origin f) h)] (
+      fn [x] (foo x)
+    )
+  )
 )
+
+(println ((integrate (fn [x] (* x x)) 1) 2))
