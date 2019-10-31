@@ -12,15 +12,15 @@
 
 (deftest integrate-test
   (testing "Проинтегрировать функцию методом трапеций"
-    (is (= 25/2 ((integrate (fn [x] x) 1) 5)))
-    (is (= 19/2 ((integrate (fn [x] (* x x)) 1) 3)))
-    (is (= 25/2 ((integrate (fn [x] x) 1/10) 5)))
-    (is (= 1801/200 ((integrate (fn [x] (* x x)) 1/10) 3)))
+    (is (= 25/2 ((make-integral (fn [x] x) 1) 5)))
+    (is (= 19/2 ((make-integral (fn [x] (* x x)) 1) 3)))
+    (is (= 25/2 ((make-integral (fn [x] x) 1/10) 5)))
+    (is (= 1801/200 ((make-integral (fn [x] (* x x)) 1/10) 3)))
     (let
       [
         function (fn [x] 1)
         antiderivative (fn [x] x)
-      ] (is (= (antiderivative 10) ((integrate function 1) 10)))
+      ] (is (= (antiderivative 10) ((make-integral function 1) 10)))
     )
   )
 )

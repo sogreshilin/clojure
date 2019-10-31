@@ -30,27 +30,16 @@
   )
 )
 
-(defn integrate-from-origin
+(defn make-integral
   "Проинтегрировать функцию f методом трапеций с постоянным шагом от 0 до x"
-  [f h x] (
-    let [
-      n (int (Math/floor (/ x h)))
-      a (* n h)
-      b x
-      integrate-n (do-integrate f h)
-    ] (
-      + (trapezoid-area f a b) (integrate-n n)
-    )
-  )
-)
-
-(defn integrate
-  "Проинтегрировать функцию f методом трапеций с постоянным шагом h от 0 до x"
   [f h] (
-    let [foo (partial (partial integrate-from-origin f) h)] (
-      fn [x] (foo x)
+    let [integrate-n (do-integrate f h)] (
+      fn [x] (let [
+          n (int (Math/floor (/ x h)))
+          a (* n h)
+          b x
+        ] (+ (trapezoid-area f a b) (integrate-n n))
+      )
     )
   )
 )
-
-(println ((integrate (fn [x] (* x x)) 1) 2))
