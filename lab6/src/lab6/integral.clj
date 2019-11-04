@@ -24,14 +24,15 @@
 )
 
 (defn integrate
-  [f h] (
-    fn [x] (
-      let [
-        n (int (Math/floor (/ x h)))
-        a (* n h)
-        b x
-        integral-sequence (make-integral-sequence f h)
-      ] (+ (trapezoid-area f a b) (second (nth integral-sequence n)))
+  [f h] (let [integral-sequence (make-integral-sequence f h)] (
+      fn [x] (
+        let [
+          n (int (Math/floor (/ x h)))
+          a (* n h)
+          b x
+
+        ] (+ (trapezoid-area f a b) (second (nth integral-sequence n)))
+      )
     )
   )
 )
