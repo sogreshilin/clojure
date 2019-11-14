@@ -121,3 +121,10 @@
     (is (= "0|a|(b&c&d)" (to-string (associate (disjunction (disjunction (constant 0) (variable :a)) (conjunction (variable :b) (conjunction (variable :c) (variable :d))))))))
   )
 )
+
+(deftest filter-disjunction-constants-test
+  (testing "Фильтрация констант"
+    (is (= "a|b|c" (to-string (filter-disjunction-constants (disjunction (variable :a) (constant 0) (variable :b) (variable :c) (constant 0))))))
+    (is (= "a|b|(c&d)" (to-string (filter-disjunction-constants (disjunction (variable :a) (constant 0) (variable :b) (conjunction (variable :c) (constant 1) (variable :d)) (constant 0))))))
+  )
+)

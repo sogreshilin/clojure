@@ -9,12 +9,18 @@
 
 (defn get-rid-of-implication [expr]
   (cond
+    (constant? expr) expr
+    (variable? expr) expr
+    (negation? expr) (negation (get-rid-of-implication (first (args expr))))
     (implication? expr) (
       disjunction
       (negation (get-rid-of-implication (nth expr 1)))
       (get-rid-of-implication (nth expr 2))
     )
-    :default expr
+    (conjunction? expr)
+      (apply conjunction (map get-rid-of-implication (args expr)))
+    (disjunction? expr)
+      (apply disjunction (map get-rid-of-implication (args expr)))
   )
 )
 
