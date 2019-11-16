@@ -81,6 +81,7 @@
     (is (= "~~a|~b" (to-string (get-rid-of-implication (implication (negation (variable :a)) (negation (variable :b)))))))
     (is (= "~(~a|1)|(~b|0)" (to-string (get-rid-of-implication (implication (implication (variable :a) (constant 1)) (implication (variable :b) (constant 0)))))))
     (is (= "~(~(~(~a|b)|c)|d)|e" (to-string (get-rid-of-implication (implication (implication (implication (implication (variable :a) (variable :b)) (variable :c)) (variable :d)) (variable :e) )))))
+    (is (= "~(a&b)|(~c|d)" (to-string (get-rid-of-implication (disjunction (negation (conjunction (variable :a) (variable :b))) (implication (variable :c) (variable :d)))))))
   )
 )
 
@@ -89,9 +90,9 @@
     (is (= "1" (to-string (push-negation (constant 1)))))
     (is (= "x" (to-string (push-negation (variable :x)))))
     (is (= "x" (to-string (push-negation (negation (negation (variable :x)))))))
-    (is (= "~x|~1" (to-string (push-negation (negation (conjunction (variable :x) (constant 1)))))))
-    (is (= "~x&~1" (to-string (push-negation (negation (disjunction (variable :x) (constant 1)))))))
-    (is (= "x&~1" (to-string (push-negation (negation (disjunction (negation (variable :x)) (constant 1)))))))
+    (is (= "~x|0" (to-string (push-negation (negation (conjunction (variable :x) (constant 1)))))))
+    (is (= "~x&0" (to-string (push-negation (negation (disjunction (variable :x) (constant 1)))))))
+    (is (= "x&0" (to-string (push-negation (negation (disjunction (negation (variable :x)) (constant 1)))))))
     (is (= "x&(x&1)" (to-string (push-negation (negation (disjunction (negation (variable :x)) (negation (conjunction (variable :x) (constant 1)))))))))
   )
 )
@@ -112,7 +113,7 @@
   )
 )
 
-(deftest distribute-test
+(deftest associate-test
   (testing "Ассоциативность конъюнкции и дизъюнкции"
     (is (= "a&b&c" (to-string (associate (conjunction (variable :a) (conjunction (variable :b) (variable :c)))))))
     (is (= "0&a&b&c" (to-string (associate (conjunction (conjunction (constant 0) (variable :a)) (conjunction (variable :b) (variable :c)))))))
@@ -122,9 +123,65 @@
   )
 )
 
-(deftest filter-disjunction-constants-test
-  (testing "Фильтрация констант"
-    (is (= "a|b|c" (to-string (filter-disjunction-constants (disjunction (variable :a) (constant 0) (variable :b) (variable :c) (constant 0))))))
-    (is (= "a|b|(c&d)" (to-string (filter-disjunction-constants (disjunction (variable :a) (constant 0) (variable :b) (conjunction (variable :c) (constant 1) (variable :d)) (constant 0))))))
+(deftest get-rid-of-constants-test
+  (testing "Избавление от констант"
+    (is (= "0" (to-string (get-rid-of-constants (constant 0)))))
+    (is (= "x" (to-string (get-rid-of-constants (variable :x)))))
+    (is (= "0" (to-string (get-rid-of-constants (conjunction (variable :x) (constant 0))))))
+    (is (= "x" (to-string (get-rid-of-constants (conjunction (variable :x) (constant 1))))))
+    (is (= "0" (to-string (get-rid-of-constants (conjunction (variable :x) (variable :y) (constant 0))))))
+    (is (= "x&y" (to-string (get-rid-of-constants (conjunction (variable :x) (variable :y) (constant 1))))))
+    (is (= "x" (to-string (get-rid-of-constants (disjunction (variable :x) (constant 0))))))
+    (is (= "1" (to-string (get-rid-of-constants (disjunction (variable :x) (constant 1))))))
+    (is (= "x|y" (to-string (get-rid-of-constants (disjunction (variable :x) (variable :y) (constant 0))))))
+    (is (= "1" (to-string (get-rid-of-constants (disjunction (variable :x) (variable :y) (constant 1))))))
+    (is (= "~0" (to-string (get-rid-of-constants (negation (constant 0))))))
+    (is (= "~x" (to-string (get-rid-of-constants (negation (variable :x))))))
+    (is (= "~0" (to-string (get-rid-of-constants (negation (conjunction (variable :x) (constant 0)))))))
+    (is (= "~x" (to-string (get-rid-of-constants (negation (conjunction (variable :x) (constant 1)))))))
+    (is (= "~0" (to-string (get-rid-of-constants (negation (conjunction (variable :x) (variable :y) (constant 0)))))))
+    (is (= "~(x&y)" (to-string (get-rid-of-constants (negation (conjunction (variable :x) (variable :y) (constant 1)))))))
+    (is (= "~x" (to-string (get-rid-of-constants (negation (disjunction (variable :x) (constant 0)))))))
+    (is (= "~1" (to-string (get-rid-of-constants (negation (disjunction (variable :x) (constant 1)))))))
+    (is (= "~(x|y)" (to-string (get-rid-of-constants (negation (disjunction (variable :x) (variable :y) (constant 0)))))))
+    (is (= "~1" (to-string (get-rid-of-constants (negation (disjunction (variable :x) (variable :y) (constant 1)))))))
+  )
+)
+
+(deftest dnf-test
+  (testing "Приведение к ДНФ"
+    (is (= "0" (to-string (dnf (constant 0)))))
+    (is (= "x" (to-string (dnf (variable :x)))))
+    (is (= "1" (to-string (dnf (negation (constant 0))))))
+    (is (= "~x" (to-string (dnf (negation (variable :x))))))
+    (is (= "0" (to-string (dnf (conjunction (variable :x) (constant 0))))))
+    (is (= "x" (to-string (dnf (conjunction (variable :x) (constant 1))))))
+    (is (= "x&y" (to-string (dnf (conjunction (variable :x) (conjunction (variable :y) (constant 1)))))))
+    (is (= "x" (to-string (dnf (disjunction (variable :x) (constant 0))))))
+    (is (= "1" (to-string (dnf (disjunction (variable :x) (constant 1))))))
+    (is (= "x|y" (to-string (dnf (disjunction (variable :x) (disjunction (variable :y) (constant 0)))))))
+    (is (= "~x|y" (to-string (dnf (implication (variable :x) (variable :y))))))
+    (is (= "1" (to-string (dnf (implication (constant 0) (conjunction (variable :y) (variable :z)))))))
+    (is (= "0" (to-string (dnf (implication (constant 1) (constant 0))))))
+    (is (= "a&b" (to-string (dnf (conjunction (conjunction (constant 1) (variable :a)) (conjunction (constant 1) (variable :b)))))))
+  )
+)
+
+(deftest apply-values-test
+  (testing "Подстановка значений переменных"
+    (def expr (implication (negation (conjunction (variable :a) (variable :b))) (disjunction (variable :c) (negation (variable :d)))))
+    (is (= "~(0&b)->(c|~d)" (to-string (apply-values expr (hash-map (variable :a) (constant 0))))))
+    (is (= "~(x&b)->(c|~d)" (to-string (apply-values expr (hash-map (variable :a) (variable :x))))))
+    (is (= "(0&b)|c|~d" (to-string (dnf (apply-values expr (hash-map (variable :a) (constant 0)))))))
+    (is (= "~(1&b)->(c|~d)" (to-string (apply-values expr (hash-map (variable :a) (constant 1))))))
+    (is (= "(1&b)|c|~d" (to-string (dnf (apply-values expr (hash-map (variable :a) (constant 1)))))))
+    (is (= "~(a&0)->(c|~d)" (to-string (apply-values expr (hash-map (variable :b) (constant 0))))))
+    (is (= "(a&0)|c|~d" (to-string (dnf (apply-values expr (hash-map (variable :b) (constant 0)))))))
+    (is (= "~(a&1)->(c|~d)" (to-string (apply-values expr (hash-map (variable :b) (constant 1))))))
+    (is (= "~(a&b)->(0|~d)" (to-string (apply-values expr (hash-map (variable :c) (constant 0))))))
+    (is (= "~(a&b)->(1|~d)" (to-string (apply-values expr (hash-map (variable :c) (constant 1))))))
+    (is (= "~(a&b)->(c|~0)" (to-string (apply-values expr (hash-map (variable :d) (constant 0))))))
+    (is (= "~(a&b)->(c|~1)" (to-string (apply-values expr (hash-map (variable :d) (constant 1))))))
+    (is (= "~(0&1)->(0|~1)" (to-string (apply-values expr (hash-map (variable :a) (constant 0) (variable :b) (constant 1) (variable :c) (constant 0) (variable :d) (constant 1))))))
   )
 )
